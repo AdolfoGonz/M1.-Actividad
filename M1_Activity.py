@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.datacollection import DataCollector
 import random
 
 class CleaningRobot(Agent):
@@ -55,6 +56,12 @@ class CleaningModel(Model):
         self.dirt = []
         self.total_moves = 0  # Añadido para rastrear el número total de movimientos
 
+        # Añadido el DataCollector
+        self.datacollector = DataCollector(
+            model_reporters={"Tiempo": "steps", "Celdas sucias": "dirt", "Movimientos": "total_moves"},
+            agent_reporters={}
+        )
+
         # Inicializar la suciedad
         for i in range(initial_dirt):
             dirt = Dirt(i, self)
@@ -77,16 +84,13 @@ class CleaningModel(Model):
         if not self.dirt or self.steps >= self.max_steps:
             self.running = False
             self.print_stats()  # Imprimir las estadísticas al final
+        self.datacollector.collect(self)  # Mover esta línea aquí
 
     def print_stats(self):  # Imprimir las estadísticas
-        print(
-            f"Tiempo necesario hasta que todas las celdas estén limpias (o se haya llegado al tiempo máximo): {self.steps}")
-        print(
-            f"Porcentaje de celdas limpias después del termino de la simulación: {100 * (1 - len(self.dirt) / (self.grid.width * self.grid.height))}%")
-        print(
-            f"Número de celdas sucias que quedaron: {len(self.dirt)}")  # Añadido el número de celdas sucias que quedaron
+        print(f"Tiempo necesario hasta que todas las celdas estén limpias (o se haya llegado al tiempo máximo): {self.steps}")
+        print(f"Porcentaje de celdas limpias después del termino de la simulación: {100 * (1 - len(self.dirt) / (self.grid.width * self.grid.height))}%")
+        print(f"Número de celdas sucias que quedaron: {len(self.dirt)}")  # Añadido el número de celdas sucias que quedaron
         print(f"Número de movimientos realizados por todos los agentes: {self.total_moves}")
-
 
 # Parámetros de la simulación
 width = 10
@@ -122,6 +126,6 @@ server = ModularServer(CleaningModel,
                        [grid],
                        "Cleaning Robot Model",
                        {"width": ancho, "height": alto, "initial_dirt": int(ancho * alto * 0.1), "n_robots": 10,
-                        "max_steps": 300})
+                        "max_steps": 299})
 server.port = 8522  # Cambiado a un puerto diferente
 server.launch()
