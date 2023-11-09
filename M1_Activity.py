@@ -12,8 +12,8 @@ class CleaningRobot(Agent):
     Un robot de limpieza reactivo que aspira las celdas sucias y se mueve aleatoriamente.
     """
 
-    def _init_(self, unique_id, model):
-        super()._init_(unique_id, model)
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -41,8 +41,8 @@ class Dirt(Agent):
     Una celda de suciedad que será limpiada por el robot.
     """
 
-    def _init_(self, unique_id, model):
-        super()._init_(unique_id, model)
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
 
 
 class CleaningModel(Model):
@@ -50,7 +50,7 @@ class CleaningModel(Model):
     El modelo que representa la habitación con una cuadrícula MxN y robots de limpieza.
     """
 
-    def _init_(self, width, height, initial_dirt, n_robots, max_steps):
+    def __init__(self, width, height, initial_dirt, n_robots, max_steps):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
