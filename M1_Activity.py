@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.datacollection import DataCollector
 import random
 
 
@@ -11,8 +12,8 @@ class CleaningRobot(Agent):
     Un robot de limpieza reactivo que aspira las celdas sucias y se mueve aleatoriamente.
     """
 
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def _init_(self, unique_id, model):
+        super()._init_(unique_id, model)
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -40,8 +41,8 @@ class Dirt(Agent):
     Una celda de suciedad que será limpiada por el robot.
     """
 
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def _init_(self, unique_id, model):
+        super()._init_(unique_id, model)
 
 
 class CleaningModel(Model):
@@ -49,7 +50,7 @@ class CleaningModel(Model):
     El modelo que representa la habitación con una cuadrícula MxN y robots de limpieza.
     """
 
-    def __init__(self, width, height, initial_dirt, n_robots, max_steps):
+    def _init_(self, width, height, initial_dirt, n_robots, max_steps):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -57,6 +58,13 @@ class CleaningModel(Model):
         self.steps = 0
         self.dirt = []
         self.total_moves = 0  # Añadido para rastrear el número total de movimientos
+
+        # Añadido el DataCollector
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Tiempo": "steps", "Celdas sucias": "dirt", "Movimientos": "total_moves"},
+            agent_reporters={}
+        )
 
         # Inicializar la suciedad
         for i in range(initial_dirt):
@@ -81,14 +89,15 @@ class CleaningModel(Model):
         if not self.dirt or self.steps >= self.max_steps:
             self.running = False
             self.print_stats()  # Imprimir las estadísticas al final
+        self.datacollector.collect(self)  # Mover esta línea aquí
 
     def print_stats(self):  # Imprimir las estadísticas
         print(
             f"Tiempo necesario hasta que todas las celdas estén limpias (o se haya llegado al tiempo máximo): {self.steps}")
         print(
             f"Porcentaje de celdas limpias después del termino de la simulación: {100 * (1 - len(self.dirt) / (self.grid.width * self.grid.height))}%")
-        print(
-            f"Número de celdas sucias que quedaron: {len(self.dirt)-1}")  # Añadido el número de celdas sucias que quedaron
+        # Añadido el número de celdas sucias que quedaron
+        print(f"Número de celdas sucias que quedaron: {len(self.dirt)}")
         print(
             f"Número de movimientos realizados por todos los agentes: {self.total_moves}")
 
@@ -129,6 +138,6 @@ server = ModularServer(CleaningModel,
                        [grid],
                        "Cleaning Robot Model",
                        {"width": ancho, "height": alto, "initial_dirt": int(ancho * alto * 0.1), "n_robots": 10,
-                        "max_steps": 300})
+                        "max_steps": 299})
 server.port = 8522  # Cambiado a un puerto diferente
 server.launch()
