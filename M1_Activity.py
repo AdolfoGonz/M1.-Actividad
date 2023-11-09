@@ -4,12 +4,16 @@ from mesa.space import MultiGrid
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.datacollection import DataCollector
+import matplotlib.pyplot as plt
 import random
 
 
 class CleaningRobot(Agent):
     """
     Un robot de limpieza reactivo que aspira las celdas sucias y se mueve aleatoriamente.
+    Creada por:
+    Oswaldo Hernandez
+    Adolfo Gonzalez
     """
 
     def __init__(self, unique_id, model):
@@ -32,8 +36,8 @@ class CleaningRobot(Agent):
                 self.model.dirt.remove(content)
 
     def step(self):
-        self.clean()  # Clean the current cell
-        self.move()   # Move to a new cell
+        self.clean()  # Clean limpia la celda
+        self.move()   # Move a una nueva celda
 
 
 class Dirt(Agent):
@@ -61,8 +65,8 @@ class CleaningModel(Model):
 
         # Añadido el DataCollector
         self.datacollector = DataCollector(
-            model_reporters={
-                "Tiempo": "steps", "Celdas sucias": "dirt", "Movimientos": "total_moves"},
+            model_reporters={"Tiempo": "steps", "Celdas sucias": lambda m: len(
+                m.dirt), "Movimientos": "total_moves"},
             agent_reporters={}
         )
 
@@ -89,9 +93,9 @@ class CleaningModel(Model):
         if not self.dirt or self.steps >= self.max_steps:
             self.running = False
             self.print_stats()  # Imprimir las estadísticas al final
-        self.datacollector.collect(self)  # Mover esta línea aquí
+        self.datacollector.collect(self)
 
-    def print_stats(self):  # Imprimir las estadísticas
+    def print_stats(self):  # Imprime aqui las estadísticas los imprime
         print(
             f"Tiempo necesario hasta que todas las celdas estén limpias (o se haya llegado al tiempo máximo): {self.steps}")
         print(
@@ -100,6 +104,14 @@ class CleaningModel(Model):
         print(f"Número de celdas sucias que quedaron: {len(self.dirt)}")
         print(
             f"Número de movimientos realizados por todos los agentes: {self.total_moves}")
+        self.plot_stats()
+
+    def plot_stats(self):  # Genera gráficos
+        model_data = self.datacollector.get_model_vars_dataframe()
+        model_data.plot(subplots=True)  # Mantener las gráficas existentes
+        # Agregar la nueva gráfica
+        model_data.plot(x="Tiempo", y="Celdas sucias")
+        plt.show()
 
 
 # Parámetros de la simulación
@@ -120,14 +132,14 @@ def agent_portrayal(agent):
         portrayal = {"Shape": "circle",
                      "Filled": "true",
                      "Layer": 1,
-                     "Color": "red",  # Cambiado a rojo
+                     "Color": "red",
                      "r": 0.5}
     elif isinstance(agent, Dirt):
-        portrayal = {"Shape": "circle",  # Cambiado a círculo
+        portrayal = {"Shape": "circle",
                      "Filled": "true",
                      "Layer": 0,
-                     "Color": "green",  # Cambiado a verde
-                     "r": 0.5}  # Añadido el radio
+                     "Color": "green",
+                     "r": 0.5}
     return portrayal
 
 
@@ -138,6 +150,6 @@ server = ModularServer(CleaningModel,
                        [grid],
                        "Cleaning Robot Model",
                        {"width": ancho, "height": alto, "initial_dirt": int(ancho * alto * 0.1), "n_robots": 10,
-                        "max_steps": 299})
-server.port = 8522  # Cambiado a un puerto diferente
+                        "max_steps": 800})
+server.port = 8522  # PUERTO
 server.launch()
