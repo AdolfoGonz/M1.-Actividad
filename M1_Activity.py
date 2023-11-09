@@ -5,6 +5,7 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 import random
 
+
 class CleaningRobot(Agent):
     """
     Un robot de limpieza reactivo que aspira las celdas sucias y se mueve aleatoriamente.
@@ -33,6 +34,7 @@ class CleaningRobot(Agent):
         self.clean()  # Clean the current cell
         self.move()   # Move to a new cell
 
+
 class Dirt(Agent):
     """
     Una celda de suciedad que será limpiada por el robot.
@@ -40,6 +42,7 @@ class Dirt(Agent):
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+
 
 class CleaningModel(Model):
     """
@@ -67,7 +70,8 @@ class CleaningModel(Model):
         # Inicializar los robots
         for i in range(n_robots):
             robot = CleaningRobot(i + initial_dirt, self)
-            self.grid.place_agent(robot, (1, 1))  # Todos los agentes comienzan en (1,1)
+            # Todos los agentes comienzan en (1,1)
+            self.grid.place_agent(robot, (1, 1))
             self.schedule.add(robot)
 
     def step(self):
@@ -84,8 +88,9 @@ class CleaningModel(Model):
         print(
             f"Porcentaje de celdas limpias después del termino de la simulación: {100 * (1 - len(self.dirt) / (self.grid.width * self.grid.height))}%")
         print(
-            f"Número de celdas sucias que quedaron: {len(self.dirt)}")  # Añadido el número de celdas sucias que quedaron
-        print(f"Número de movimientos realizados por todos los agentes: {self.total_moves}")
+            f"Número de celdas sucias que quedaron: {len(self.dirt)-1}")  # Añadido el número de celdas sucias que quedaron
+        print(
+            f"Número de movimientos realizados por todos los agentes: {self.total_moves}")
 
 
 # Parámetros de la simulación
@@ -99,6 +104,7 @@ max_steps = 100
 model = CleaningModel(width, height, initial_dirt, n_robots, max_steps)
 while model.running:
     model.step()
+
 
 def agent_portrayal(agent):
     if isinstance(agent, CleaningRobot):
@@ -114,6 +120,7 @@ def agent_portrayal(agent):
                      "Color": "green",  # Cambiado a verde
                      "r": 0.5}  # Añadido el radio
     return portrayal
+
 
 ancho = 28
 alto = 28
